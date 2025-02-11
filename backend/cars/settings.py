@@ -141,6 +141,7 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=7),
     }
 
+CORS_ALLOW_CREDENTIALS = True  # Allow cookies/auth headers
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173'
+    "http://localhost:5173",  # Allow requests from Vite React frontend
 ]

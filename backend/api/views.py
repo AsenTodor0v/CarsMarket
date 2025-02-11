@@ -1,16 +1,28 @@
-from django.shortcuts import render
 from rest_framework.generics import ListAPIView,CreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.pagination import PageNumberPagination
+
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.contrib.auth.models import User
+
 
 from .models import Car, FavouriteCar, CarImage
 from .serializers import CarSerializer, FavoriteCarSerializer, CarImageSerializer
+
+class CarPagination(PageNumberPagination):
+    page_size = 6  
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 
 class CarListView(ListAPIView):
     queryset = Car.objects.all()
     serializer_class = CarSerializer
+    pagination_class = CarPagination
 
 class CarCreateView(CreateAPIView):
     queryset = Car.objects.all()
@@ -69,3 +81,15 @@ class CarImageView(CreateAPIView):
             serializer.save(car=car)
         except:
             raise serializers.ValidationError({"error": "Car not found."})
+        
+
+@api_view(['POST'])
+def register(request):
+    if request.method == 'POST':
+        username = request.data.get('username')
+        password = request.data.get('password')
+        if User.objects.filter(username=username).exists():
+            return Response({"error": "Username already exists."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user = User.objects.create_user(username=username, password=password)
+        return Response({"message": "User created successfully."}, status=status.HTTP_201_CREATED)
